@@ -1,505 +1,986 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="CimbaApp">
+<html lang="en">
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
-<meta charset="utf-8">
-<title>Cimba</title>
-<meta name="generator" content="Cimba">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<!-- prod
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
--->
-<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cimba - Decentralized Microblogging</title>
 
-<!-- dev -->
-<link href="dev/css/bootstrap.min.css" rel="stylesheet">
-<!-- local -->
-<link href="css/style.css" rel="stylesheet">
-<link href="css/proxima-nova.css" rel="stylesheet">
+  <!-- SEO -->
+  <meta name="description" content="A decentralized Twitter-style microblogging app where you own your data. Built on Solid.">
+  <meta name="keywords" content="solid, decentralized, microblog, twitter, rdf, linked data">
+  <meta name="author" content="Solid Social">
 
-<!-- prod
-<script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.js"></script>
--->
-<!-- dev -->
-<script type='text/javascript' src="dev/js/jquery.min.js"></script>
-<script type='text/javascript' src="dev/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="dev/js/jquery-ui.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/showdown/0.3.1/showdown.min.js"></script>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://solid-social.github.io/cimba/">
+  <meta property="og:title" content="Cimba - Decentralized Microblogging">
+  <meta property="og:description" content="A decentralized Twitter-style microblogging app where you own your data.">
+  <meta property="og:image" content="https://solid-social.github.io/cimba/img/og-image.svg">
 
-<script src="dev/js/angular.min.js"></script>
-<script src="dev/js/angular-ui.min.js"></script> 
-<script src="dev/js/rdflib.js"></script> 
-<!-- local -->
-<script type='text/javascript' src="js/jquery.notify.js"></script>
-<!-- <script type='text/javascript' src="js/rdflib.min.js"></script> -->
-<script type='text/javascript' src="js/common.js"></script>
-<script type='text/javascript' src="js/moment.min.js"></script>
-<script type='text/javascript' src="js/sanitize.js"></script>
-<script type='text/javascript' src="js/app.js"></script>
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cimba - Decentralized Microblogging">
+  <meta name="twitter:description" content="A decentralized Twitter-style microblogging app where you own your data.">
 
-<!--[if lt IE 9]>
-  <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
-    
-<link rel="shortcut icon" type="img/png" href="favicon.png">
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.png">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #000000;
+      --bg-secondary: #16181c;
+      --border: #2f3336;
+      --text: #e7e9ea;
+      --text-secondary: #71767b;
+      --accent: #1d9bf0;
+      --accent-hover: #1a8cd8;
+      --danger: #f4212e;
+      --success: #00ba7c;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 275px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      padding: 12px;
+      font-size: 30px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 12px;
+      border-radius: 9999px;
+      font-size: 20px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover { background: var(--bg-secondary); }
+    .nav-item.active { font-weight: 700; }
+    .nav-icon { font-size: 26px; }
+
+    .post-btn {
+      width: 90%;
+      padding: 16px;
+      margin-top: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .post-btn:hover { background: var(--accent-hover); }
+
+    .user-menu {
+      margin-top: auto;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+
+    .user-menu:hover { background: var(--bg-secondary); }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .user-info { flex: 1; }
+    .user-name { font-weight: 700; font-size: 15px; }
+    .user-handle { color: var(--text-secondary); font-size: 15px; }
+
+    /* Main */
+    .main {
+      flex: 1;
+      max-width: 600px;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      min-height: 100vh;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      padding: 16px 0;
+    }
+
+    .header-tabs {
+      display: flex;
+    }
+
+    .header-tab {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 4px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .header-tab:hover { background: var(--bg-secondary); }
+    .header-tab.active {
+      color: var(--text);
+      font-weight: 700;
+      border-bottom-color: var(--accent);
+    }
+
+    /* Composer */
+    .composer {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+    }
+
+    .composer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
+
+    .composer-content { flex: 1; }
+
+    .composer-textarea {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 0;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 20px;
+      resize: none;
+      outline: none;
+    }
+
+    .composer-textarea::placeholder { color: var(--text-secondary); }
+
+    .composer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .composer-tools {
+      display: flex;
+      gap: 4px;
+    }
+
+    .composer-tool {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    .composer-tool:hover { background: rgba(29, 155, 240, 0.1); }
+
+    .tweet-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tweet-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tweet-btn:not(:disabled):hover { background: var(--accent-hover); }
+
+    /* Tweet */
+    .tweet {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .tweet:hover { background: var(--bg-secondary); }
+
+    .tweet-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tweet-content { flex: 1; min-width: 0; }
+
+    .tweet-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .tweet-name { font-weight: 700; }
+    .tweet-handle { color: var(--text-secondary); }
+    .tweet-dot { color: var(--text-secondary); }
+    .tweet-time { color: var(--text-secondary); }
+
+    .tweet-body {
+      margin-top: 4px;
+      font-size: 15px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .tweet-actions {
+      display: flex;
+      justify-content: space-between;
+      max-width: 425px;
+      margin-top: 12px;
+    }
+
+    .tweet-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 8px;
+      margin: -8px;
+      border-radius: 9999px;
+      transition: all 0.2s;
+    }
+
+    .tweet-action:hover { color: var(--accent); background: rgba(29, 155, 240, 0.1); }
+    .tweet-action.liked { color: #f91880; }
+    .tweet-action.liked:hover { background: rgba(249, 24, 128, 0.1); }
+    .tweet-action.retweeted { color: var(--success); }
+
+    /* Right sidebar */
+    .right-sidebar {
+      width: 350px;
+      padding: 0 32px;
+    }
+
+    .search-box {
+      position: sticky;
+      top: 0;
+      padding: 12px 0;
+      background: var(--bg);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid transparent;
+      border-radius: 9999px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    .search-input:focus { border-color: var(--accent); background: transparent; }
+
+    .trends-box {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .trends-header {
+      padding: 12px 16px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .trend-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .trend-item:hover { background: rgba(255,255,255,0.03); }
+    .trend-category { font-size: 13px; color: var(--text-secondary); }
+    .trend-name { font-weight: 700; margin: 2px 0; }
+    .trend-count { font-size: 13px; color: var(--text-secondary); }
+
+    /* Login Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(91, 112, 131, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 32px;
+      width: 400px;
+      max-width: 90vw;
+    }
+
+    .modal h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 17px;
+      margin-bottom: 24px;
+      outline: none;
+    }
+
+    .modal-input:focus { border-color: var(--accent); }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-cancel {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-submit {
+      flex: 1;
+      padding: 12px;
+      background: var(--text);
+      border: none;
+      border-radius: 9999px;
+      color: var(--bg);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-state h3 {
+      font-size: 31px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    /* Loading */
+    .loading {
+      padding: 32px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    /* Responsive */
+    @media (max-width: 1280px) {
+      .right-sidebar { display: none; }
+    }
+
+    @media (max-width: 1000px) {
+      .sidebar { width: 88px; }
+      .nav-item span { display: none; }
+      .post-btn span { display: none; }
+      .post-btn { width: 50px; height: 50px; padding: 0; }
+      .user-info { display: none; }
+    }
+
+    @media (max-width: 500px) {
+      .sidebar { display: none; }
+      .main { border: none; }
+    }
+  </style>
 </head>
-    
-<body ng-cloak>
-<div ng-controller="CimbaCtrl">
-    <div class="navbar navbar-default" id="subnav">
-        <div class="col-md-12">
-            <div class="navbar-header">
-                <img src="img/cimba-logo.png" class="logo">                
-                <button id="menuToggle" type="button" class="navbar-toggle pull-right" data-toggle="collapse" data-target="#navbar-collapse2">
-                    <span class="sr-only">Toggle navigation</span>
-                    <i class="fa fa-bars fa-2x blue"></i>
-                </button>
-<!-- TODO!
-                <div ng-show="me.pic" class="user-thumb"><a href="{{me.webid}}" target="_blank"><img class="r3" src="{{me.pic}}" rel="tooltip" data-placement="top" title="{{me.name}}"></a></div>
--->
-            </div>
+<body>
+  <div id="app"></div>
 
-            <div class="collapse navbar-collapse" id="navbar-collapse2">
-              <ul class="nav navbar-nav navbar-right">
-                  <li ng-hide="!me.channels[0]"><a href="#" ng-click="updatePosts()"><i class="fa fa-refresh"></i> Refresh </a></li>
-                  <li ng-show="loggedin"><a href="#subsModal" role="button" data-toggle="modal"><i class="fa fa-rss"></i> Channels</a></li>
-                  <!-- QCRI Filtering Start -->
-				          <li ng-hide="!me.channels[0]" ng-class="filterFlag==true?'active':''" rel="tooltip" data-placement="top" title="Toggle language filter"><a href="#" ng-click="toggleFilter()"><i class="fa fa-filter"></i> {{languageFilter}}</a></li>
-                  <!-- QCRI Filtering End -->
-				          <li ng-hide="loggedin"><a href="#loginModal" role="button" data-toggle="modal"><i class="fa fa-sign-in"></i> Login</a></li>
-                  <li ng-show="loggedin"><a href="#" ng-click="clearSession()" role="button"><i class="fa fa-sign-out"></i> Logout</a></li>
-              </ul>
-            </div>
-        </div>	
-    </div>
+  <script type="module">
+    // Polyfill for crypto.randomUUID (needed for non-HTTPS)
+    if (!crypto.randomUUID) {
+      crypto.randomUUID = function() {
+        return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+          (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+        )
+      }
+    }
 
-    <!--main-->
+    import { h, render } from 'https://esm.sh/preact@10.19.3'
+    import { useState, useEffect } from 'https://esm.sh/preact@10.19.3/hooks'
+    import htm from 'https://esm.sh/htm@3.1.1'
+    import * as $rdf from 'https://esm.sh/rdflib@2.2.35'
+    import { Session } from 'https://esm.sh/solid-oidc@0.0.3'
 
-    <!-- new post  -->
-    <div class="container" id="newpost">
-        <div class="row">
-            <div class="clear-70"></div>
-            <div class="col-md-12">
-                <!-- new post -->
-                <div class="panel panel-default" ng-show="loggedin"> 
-                    <div class="panel-heading dark-blue">
-                        <div class="pull-left">
-                            <a id="pic" class="thumbnail pull-right" href="{{me.webid}}">
-                              <img class="media-object" ng-src="{{me.pic}}" rel="tooltip" data-placement="top" title="{{me.name}}">
-                            </a>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="panel-body-textmail">
-                          <div id="spinner" ng-hide="me.name"></div>
-                          <h3 class="bold" ng-show="profileloading">Loading profile...</h3>
-                          <h3 class="bold" ng-show="me.name && !me.chspace">Hello {{me.name}}!</h3>
-			  <h3 class="bold" ng-show="me.chspace">What's new<span ng-show="me.name != ''">, </span><a ng-show="me.name != ''" href="{{me.webid}}">{{me.name}}</a>?</h3>
-                          <form ng-hide="me.webid && !me.chspace">                               
-                              <textarea name="message" ng-model="postbody" class="form-control message" placeholder="Type your message here.." required></textarea>
-                              <div class="btn-group">
-                                  <button id="audience" class="btn btn-primary" disabled><i class="fa {{audience.icon}} fa-2x white"></i></button><button class="btn dropdown-toggle" data-toggle="dropdown" data-target="#" href="#"> <small class="drop" rel="tooltip" data-placement="top" title="Audience"><i class="fa fa-chevron-down fa-2x"></i></small></button>
-                                  <ul class="dropdown-menu" role="menu" aria-labelledby="audience">
-                                      <li><a href="#" ng-click="setAudience('public')"><i id="public" class="fa fa-globe fa-2x blue"></i> Public</a></li>
-                                      <li><a href="#" ng-click="setAudience('private')">&nbsp;<i id="private" class="fa fa-lock fa-2x blue"></i>&nbsp; Private</a></li>
-                                      <!-- <li><a href="#" ng-click="setAudience('friends')"><i id="friends" class="fa fa-user fa-2x blue"></i> Friends</a></li> -->
-                                  </ul>
-                              </div>
+    const html = htm.bind(h)
 
-                              <div class="btn-group" ng-show="me.channels.length > 0" rel="tooltip" data-placement="top" title="Channels">
-                                  <button id="chs" class="btn btn-primary" disabled>{{defaultChannel.title}}</button><button class="btn dropdown-toggle" data-toggle="dropdown" data-target="#" href="#"> <small class="drop" rel="tooltip" data-placement="top" title="Channels"><i class="fa fa-chevron-down fa-2x"></i></small></button>
-                                  <ul class="dropdown-menu" role="menu" aria-labelledby="chs">
-                                      <li ng-repeat="channel in me.channels | orderBy:'title'">
-                                          <a href="#" ng-click="setChannel(channel.title)">{{channel.title}}</a>
-                                      </li>
-                                  </ul>
-                              </div>
-                              <div class="pull-right">
-                                  <button class="btn btn-primary pull-right w60" ng-click="newPost()" ng-disabled="!postbody">
-                                    <div ng-show="!publishing">Post</div>
-                                    <div ng-show="publishing" class="dots"></div>
-                                  </button>
-                              </div>
-                          </form>
-                        </div>
-                    </div>
-                </div>
-                <!-- end new post -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- WebID authentication failed/missing -->
-    <div id="setup" class="container" ng-show="testwebid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default"> 
-                    <div class="panel-heading dark-blue">
-                      &nbsp;
-                    </div>
-                    <div class="panel-body">
-                        <div class="panel-body">
-                          <h2 class="text-center">We were unable to authentify you using WebID-TLS!</h2>
-                          <div class="text-center">
-                            <a href="https://auth.my-profile.eu/auth/index.php?verbose=on" target="_blank"><button class="btn btn-primary btn-sep-right">Test your WebID</button></a>
-                            <a href="#loginModal" role="button" data-toggle="modal"><button class="btn btn-primary">Sign up for a WebID</button></a>
-                          </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    // RDF Namespaces
+    const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
+    const SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
+    const DCT = $rdf.Namespace('http://purl.org/dc/terms/')
+    const RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+    const PIM = $rdf.Namespace('http://www.w3.org/ns/pim/space#')
 
-    <!-- login/signup -->
-    <div id="setup" class="container" ng-show="!me.webid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default"> 
-                    <div class="panel-heading dark-blue">
-                      &nbsp;
-                    </div>
-                    <div class="panel-body">
-                        <div class="panel-body">
-                          <h2 class="text-center">Welcome to <img src="img/cimba-logo.png" height="50"></h2>
-                          <div class="text-center">
-                            <h3>You must be authenticated in order to use this microblogging application.</h3>
-                            <a href="#loginModal" role="button" data-toggle="modal"><button class="btn btn-primary btn-sep-right">Login / Sign Up</button></a>
-                          </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    // Auth
+    let currentWebId = null
+    let sessionReady = null
 
-    <!-- new storage modal -->
-    <div id="setup" class="container" ng-show="me.webid && !me.storagespace">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default text-center">
-                    <h3>Hi {{me.name}}! We could not find a shared storage space in your WebID profile.</h3>
-                    <p><a href="#newStorageModal" role="button" data-toggle="modal"><button class="btn btn-primary">Please provide one here</button></a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    const session = new Session({
+      onStateChange: (e) => {
+        currentWebId = e.detail.isActive ? e.detail.webId : null
+        updateFetcher()
+      }
+    })
 
-    <!-- new uB modal -->
-    <div id="setup" class="container" ng-show="me.webid && me.storagespace && me.mbspace == false">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default text-center">
-                    <h3>To start using Cimba, you will need a microblogging space.</h3>
-                    <p><a href="#newMBModal" role="button" data-toggle="modal"><button class="btn btn-primary">Click here to create one</button></a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    async function initAuthEarly() {
+      try { await session.restore() } catch (e) {}
+      try { await session.handleRedirectFromLogin() } catch (e) {}
+      currentWebId = session.webId
+    }
 
-    <!-- no channels found -->
-    <div id="setup" class="container" ng-show="me.webid && me.storagespace && me.mbspace && me.chspace == false">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default text-center">
-                    <h3>You're almost there! Now you just need to create a channel for your posts.</h3>
-                    <p><a href="#newChannelModal" role="button" data-toggle="modal"><button class="btn btn-primary">Click here to create a channel</button></a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    sessionReady = initAuthEarly()
 
-    <!-- no posts found -->
-    <div id="setup" class="container" ng-show="me.gotposts == false">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default text-center">
-                    <h3>You haven't posted anything. Try writing a new post or <a href="#subscribeModal" role="button" data-toggle="modal"><button class="btn btn-primary"><i class="fa fa-rss white"></i> subscribe</button></a> to someone's channels!</h3>
-                </div>
-            </div>
-        </div>
-    </div>
+    function getAuthFetch() {
+      return session.webId
+        ? (url, options) => session.authFetch(url, options)
+        : fetch.bind(window)
+    }
 
-    <!-- posts viewer -->
-    <div id="posts" class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- Loading animation -->
-                <div class="panel panel-default text-center" ng-show="loading">
-                    <!-- <div class="spinner"> -->
-                    <div class="clear-40">
-                      <div class="circle circle-large"></div><div class="circle1 circle1-large"></div>
-                    </div>
-                    <!-- <div class="gear"></div> -->
-                </div>
-                <!-- All posts go into <posts-viewer> -->
-                <posts-viewer ng-show="loggedin"></posts-viewer>
-            </div>
-        </div>
-    </div>
+    const store = $rdf.graph()
+    let fetcher = $rdf.fetcher(store, { fetch: getAuthFetch(), timeout: 30000 })
 
-    <!--new storage modal-->
-    <div id="newStorageModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog">
-          <div class="modal-content">
-              <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                  <h3 class="text-center">Provide a URI for your storage</h3>
-              </div>
-              <div class="modal-body">
-                  <form class="m10">
-                      <p><small>Full storage location URI. Must start with http(s)://</small></p>
-                      <input type="text" id="storageuri" name="storageuri" ng-model="storageuri" class="form-control" placeholder="http.." required ng-pattern="/^http[A-Za-z0-9_.:/]*$/">
-                      <div ng-show="storageuri" class="text-center">
-                        <br>
-                        <p>Alternatively, if your WebID profile is not Web writable, you can manually add the following triple at the end of your profile:</p>
-                        <br>
-                        <textarea class="triples"><{{me.webid}}>
-          <http://www.w3.org/ns/pim/space#storage>
-              <{{storageuri}}> .</textarea>
-                      </div>
-                  </form>
-              </div>
-              <div class="modal-footer">
-                  <div class="col-md-12">
-                      <button class="btn btn-primary" ng-click="newStorage(true)" ng-disabled="!storageuri" tooltip="Skip all configuration">{{addstoragebtn}} (simple)</button>
-                      <button class="btn btn-primary" ng-click="newStorage()" ng-disabled="!storageuri" rel="tooltip" data-placement="top" title="Choose configuration options">{{addstoragebtn}} (advanced)</button>
-                      <button class="btn btn-info btn-sep-right" data-dismiss="modal" aria-hidden="true">Close</button>
-                  </div>  
-              </div>      
-          </div>
-      </div>
-    </div>
+    function updateFetcher() {
+      fetcher = $rdf.fetcher(store, { fetch: getAuthFetch(), timeout: 30000 })
+    }
 
-    <!--new microblogging workspace modal-->
-    <div id="newMBModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog">
-          <div class="modal-content">
-              <div class="modal-header">                 
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>              
-                  <h3 class="text-center">Create a new microblog workspace</h3>
-              </div>
-              <div class="modal-body">
-                  <form class="m10">
-                      <input type="text" id="mburi" name="mburi" ng-model="mburi" class="form-control" placeholder="mb, blog, etc.." required ng-pattern="/^[A-Za-z0-9_ ]*$/">
-                  </form>
-              </div>
-              <div class="modal-footer">
-                  <div class="col-md-12">
-                      <button class="btn btn-primary" ng-click="newMB()" ng-disabled="!mburi">{{createbtn}}</button>
-                      <button class="btn btn-info btn-sep-right" data-dismiss="modal" aria-hidden="true">Close</button>
-                  </div>  
-              </div>
-          </div>
-      </div>
-    </div>
+    async function solidLogin(idp) {
+      const issuer = idp.startsWith('http') ? idp : `https://${idp}`
+      await session.login(issuer, window.location.href)
+    }
 
-    <!--new channel modal-->
-    <div id="newChannelModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog">
-          <div class="modal-content">
-              <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h2 class="text-center">Create a new channel</h2>
-              </div>
-              <div class="modal-body">
-                  <form class="m10">
-                  <p>The name you provide will be used to create a new channel inside your microblog.</p>                  
-                  <p><input type="text" id="channelname" name="channelname" ng-model="channelname" class="form-control" placeholder="Name (Main, Work, etc.).." required ng-pattern="/^[A-Za-z0-9_ ]*$/"></p>
-                  <div class="btn-group">
-                      <button id="audience" class="btn btn-primary" disabled><i class="fa {{audience.icon}} fa-2x white"></i></button><button class="btn dropdown-toggle" data-toggle="dropdown" data-target="#" href="#"> <small class="drop" rel="tooltip" data-placement="top" title="Audience"><i class="fa fa-chevron-down fa-2x"></i></small></button>
-                      <ul class="dropdown-menu" role="menu" aria-labelledby="audience">
-                          <li><a href="#" ng-click="setAudience('public')"><i id="public" class="fa fa-globe fa-2x blue"></i> Public</a></li>
-                          <li><a href="#" ng-click="setAudience('private')">&nbsp;<i id="private" class="fa fa-lock fa-2x blue"></i>&nbsp; Private</a></li>
-                          <!-- <li><a href="#" ng-click="setAudience('friends')"><i id="friends" class="fa fa-user fa-2x blue"></i> Friends</a></li> -->
-                      </ul>
-                  </div>
-                  </form>
-              </div>
-              <div class="modal-footer">
-                  <div class="col-md-12">
-                      <button class="btn btn-primary" ng-click="newChannel()" ng-disabled="!channelname">{{createbtn}}</button>
-                      <button class="btn btn-info btn-sep-right" data-dismiss="modal" aria-hidden="true">Close</button>
-                  </div>  
-              </div>
-          </div>
-      </div>
-    </div>
+    async function initAuth() {
+      await sessionReady
+      updateFetcher()
+      return session.webId ? { webId: session.webId } : null
+    }
 
-    <!--channels modal-->
-    <div id="subsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header text-center">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h2 class="text-center"><i class="fa fa-rss"></i>  Manage channels</h2>
-                    <a href="#newChannelModal" role="button" data-toggle="modal" onclick="$('#subsModal').modal('hide')"><button class="btn btn-primary btn-sep-right"><i class="fa fa-plus"></i> New channel</button></a>
-                    <a href="#subscribeModal" role="button" data-toggle="modal" ><button class="btn btn-primary btn-sep-right"><i class="fa fa-search"></i> Find channels</button></a>
-                    <h2 class="text-center">Available channels:</h2>
-                </div>
-                <div class="modal-body">
-                    <channelslist></channelslist>
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-12">
-                        <button class="btn btn-info" data-dismiss="modal" aria-hidden="true">Close</button>
-                    </div>  
-                </div>
-            </div>
-        </div>
-    </div>
+    async function doLogout() {
+      await session.logout()
+      currentWebId = null
+      updateFetcher()
+      window.location.reload()
+    }
 
-    <!--subscribe modal-->
-    <div id="subscribeModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h2 class="text-center"><i class="fa fa-search"></i> Find channels</h2>
-                    <form>
-                        <p class="text-center">Search by name, email or WebID..</p>
-                        <div class="input-group">
-                            <div class="input-group-btn text-center">
-                              <input type="search" id="search" name="search" class="form-control" ng-model="search.query" ng-change="lookupWebID(search.query)" ng-pattern="/^[A-Za-z0-9_#.:/]*$/">
-                              <button class="btn btn-primary searchbutton" ng-click="getInfo(search.webid); searchbtn='Searching...'" ng-disabled="!search.webid"><i class="fa fa-search"></i> {{searchbtn}}</button>
-                            </div>
-                        </div>
-                        <div ng-show="search.loading" class="mt30">
-                            <div class="circle circle-large"></div><div class="circle1 circle1-large"></div>
-                        </div>
-                        <searchResults></searchResults>
-                        <h4 class="black text-center" ng-show="!found">No WebID found at given location.</h4>
-                    </form>
-                </div>
-                <div class="modal-body">
-                    <div class="searchresults" ng-show="gotresults">
-                        <div class="panel-heading dark-blue">
-                            <div class="pull-left">
-                                <a class="thumbnail thumbnail-sm pull-right" href="{{search.webid}}">
-                                  <img class="media-object" ng-src="{{search.pic}}" rel="tooltip" data-placement="top" title="{{search.name}}">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="panel-body-text">
-                            <h4 class="black bold">{{search.name}}</h4>
-                            <h4 class="black">Has {{search.channels.length}} channels.</h4>
-                        </div>
-                        <div class="panel-body">
-                            <h4 class="black" ng-repeat="ch in search.channels">
-                                <button class="btn" ng-class="ch.css" ng-click="channelToggle(ch, search)" rel="tooltip" data-placement="top" title="{{ch.action}}"><i class="fa {{ch.button}} fa-2x"></i></button>
-                                <a href="{{ch.uri}}" target="_blank">{{ch.title}}</a>
-                            </h4>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-12">
-                        <button class="btn btn-info" data-dismiss="modal" aria-hidden="true">Close</button>
-                    </div>  
-                </div>
-            </div>
-        </div>
-    </div>
+    // Profile
+    async function fetchProfile(webId) {
+      try {
+        const docUrl = webId.split('#')[0]
+        const res = await getAuthFetch()(docUrl, {
+          headers: { 'Accept': 'text/turtle, application/ld+json, */*' }
+        })
+        const text = await res.text()
+        const contentType = res.headers.get('content-type') || ''
+        const mimeType = contentType.includes('json') ? 'application/ld+json' : 'text/turtle'
+        $rdf.parse(text, store, docUrl, mimeType)
 
-</div>
-<!-- bottom -->
-<div class="col-md-12 text-center">
-    <hr>
-    <p>Powered by <a href="https://github.com/social-webarch/cimba" target="_blank">CIMBA</a> v1.0 alpha | <a href="https://github.com/social-webarch/cimba/issues" target="_blank">Bug tracker</a> | <a href="#aboutModal" role="button" data-toggle="modal">About</a></p>
-</div>
-<!--/main-->
+        const me = $rdf.sym(webId)
+        const name = store.any(me, FOAF('name'))
+        const avatar = store.any(me, FOAF('img')) || store.any(me, FOAF('depiction'))
+        const storage = store.any(me, PIM('storage'))
 
-<!-- set the notifications container hidden when the page first loads -->
-<div id="notification" style="display:none">
-    <div id="basic-template">
-        <a class="ui-notify-cross ui-notify-close" href="#">x</a>
-        <h1>#{title}</h1>
-        <p>#{text}</p>
-    </div>
-</div>
-
-<!-- OTHER -->
-
-<!--about modal-->
-<div id="aboutModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-  <div class="modal-content">
-      <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h2 class="text-center">About</h2>
-      </div>
-      <div class="modal-body">
-          <div class="col-md-12 text-center">
-            <h3>This microblogging app is powered by Cimba v1.0 alpha</h3>
-            <br>
-            <h3><a href="https://github.com/linkeddata/cimba" target="_blank">Fork on GitHub</a></h3>
-          </div>
-      </div>
-      <div class="modal-footer">
-          <button class="btn btn-info btn-sep-right" data-dismiss="modal" aria-hidden="true">Close</button>
-      </div>
-  </div>
-  </div>
-</div>
-
-<!--login modal-->
-<div id="loginModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-  <div class="modal-content">
-      <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h2 class="text-center">Login / Sign Up</h2>
-      </div>
-      <div class="modal-body">         
-          <iframe id="signup" src="" sandbox="allow-same-origin allow-scripts allow-forms" frameborder="0"></iframe>
-      </div>
-      <div class="modal-footer">
-          <div class="col-md-12">
-              <button class="btn btn-info" data-dismiss="modal" aria-hidden="true">Close</button>
-          </div>  
-      </div>
-  </div>
-  </div>
-</div>
-
-<script type='text/javascript'>
-$(document).ready(function() {
-    /* toggle layout */
-    $('#btnToggle').click(function(){
-        if ($(this).hasClass('on')) {
-            $('#main .col-md-6').addClass('col-md-4').removeClass('col-md-6');
-            $(this).removeClass('on');
+        // Derive microblog channel from storage
+        let mbspace = storage?.value
+        if (mbspace) {
+          mbspace = mbspace.replace(/\/?$/, '/') + 'public/microblog/'
         }
-        else {
-            $('#main .col-md-4').addClass('col-md-6').removeClass('col-md-4');
-            $(this).addClass('on');
+
+        return {
+          webId,
+          name: name?.value || 'Anonymous',
+          handle: '@' + (webId.split('//')[1]?.split('/')[0] || 'user'),
+          avatar: avatar?.value || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(webId)}`,
+          storage: storage?.value,
+          mbspace
         }
-    });
-    // auto close menu after click
-    $('#navbar-collapse2').click(function () {
-        if (!$("#menuToggle").hasClass('collapsed')) {
-            $('.navbar-collapse').collapse('hide');
+      } catch (e) {
+        console.error('Failed to fetch profile:', e)
+        return {
+          webId,
+          name: 'Anonymous',
+          handle: '@user',
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(webId)}`
         }
-    });
+      }
+    }
 
-    // load login/signup
-    //$('#login-body').load("//example.org/onboard/signup.html");
-    //angular.bootstrap(document.getElementById('ob-app'), ['ob-app']);
+    // Posts
+    async function fetchPosts(mbspace) {
+      const posts = []
+      if (!mbspace) return posts
 
-    // init tooltip plugin
-    $('#audience').tooltip();
+      try {
+        // Check last 30 days
+        for (let i = 0; i < 30; i++) {
+          const date = new Date()
+          date.setDate(date.getDate() - i)
+          const dayStr = date.toISOString().slice(0, 10)
+          const dayFileUri = `${mbspace}${dayStr}.ttl`
 
-    // login/signup widget source
-    var providerURI = '//linkeddata.github.io/signup/index.html?ref=';
-    
-    // set the parameter in the src of iframe
-    document.getElementById('signup').src = providerURI+window.location.protocol+'//'+window.location.host;
-    //document.getElementById('directLogin').href = providerURI+window.location.protocol+'//'+window.location.host+'#login';
-    //document.getElementById('directSignup').href = providerURI+window.location.protocol+'//'+window.location.host+'#signup';
-});
-</script>
+          try {
+            const head = await getAuthFetch()(dayFileUri, { method: 'HEAD' })
+            if (!head.ok) continue
+            await fetcher.load(dayFileUri)
+          } catch (e) {}
+        }
 
+        const postNodes = store.each(null, RDF('type'), SIOC('Post'))
+
+        for (const node of postNodes) {
+          const content = store.any(node, SIOC('content'))
+          const created = store.any(node, DCT('created'))
+          const creator = store.any(node, SIOC('has_creator'))
+
+          if (content) {
+            let authorWebId = null
+            let authorName = 'Unknown'
+            let authorPic = null
+
+            if (creator) {
+              authorWebId = store.any(creator, SIOC('account_of'))?.value
+              authorName = store.any(creator, FOAF('name'))?.value || 'Unknown'
+              authorPic = store.any(creator, SIOC('avatar'))?.value
+            }
+
+            posts.push({
+              id: node.value,
+              content: content.value,
+              created: created ? new Date(created.value) : new Date(),
+              authorWebId,
+              authorName,
+              authorPic: authorPic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorWebId || 'default'}`,
+              authorHandle: authorWebId ? '@' + authorWebId.split('//')[1]?.split('/')[0] : '@unknown',
+              likes: 0,
+              retweets: 0,
+              replies: 0
+            })
+          }
+        }
+
+        posts.sort((a, b) => b.created - a.created)
+      } catch (e) {
+        console.error('Failed to fetch posts:', e)
+      }
+
+      return posts
+    }
+
+    async function ensureContainer(uri) {
+      const authFetch = getAuthFetch()
+      try {
+        const res = await authFetch(uri, { method: 'HEAD' })
+        if (res.ok) return true
+      } catch (e) {}
+
+      const res = await authFetch(uri, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'text/turtle',
+          'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
+        }
+      })
+      return res.ok
+    }
+
+    async function createPost(mbspace, content, user) {
+      const today = new Date().toISOString().slice(0, 10)
+      const dayFileUri = `${mbspace}${today}.ttl`
+      const now = new Date().toISOString()
+      const postId = `#post-${Date.now()}`
+
+      await ensureContainer(mbspace)
+
+      const head = await getAuthFetch()(dayFileUri, { method: 'HEAD' })
+
+      if (!head.ok) {
+        // Create new file
+        const turtle = `@prefix sioc: <http://rdfs.org/sioc/ns#>.
+@prefix dct: <http://purl.org/dc/terms/>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+<${postId}> a sioc:Post ;
+    sioc:content """${content.replace(/"/g, '\\"')}""" ;
+    sioc:has_creator <${postId}-author> ;
+    dct:created "${now}"^^xsd:dateTime .
+
+<${postId}-author> a sioc:UserAccount ;
+    sioc:account_of <${user.webId}> ;
+    sioc:avatar <${user.avatar}> ;
+    foaf:name "${user.name}" .
+`
+        await getAuthFetch()(dayFileUri, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/turtle' },
+          body: turtle
+        })
+      } else {
+        // Append via PATCH
+        const sparql = `INSERT DATA {
+  <${postId}> a <http://rdfs.org/sioc/ns#Post> ;
+    <http://rdfs.org/sioc/ns#content> """${content.replace(/"/g, '\\"')}""" ;
+    <http://rdfs.org/sioc/ns#has_creator> <${postId}-author> ;
+    <http://purl.org/dc/terms/created> "${now}"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+  <${postId}-author> a <http://rdfs.org/sioc/ns#UserAccount> ;
+    <http://rdfs.org/sioc/ns#account_of> <${user.webId}> ;
+    <http://rdfs.org/sioc/ns#avatar> <${user.avatar}> ;
+    <http://xmlns.com/foaf/0.1/name> "${user.name}" .
+}`
+        await getAuthFetch()(dayFileUri, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/sparql-update' },
+          body: sparql
+        })
+      }
+
+      return dayFileUri + postId
+    }
+
+    // Time formatting
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000)
+      if (seconds < 60) return `${seconds}s`
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }
+
+    // Components
+    function Sidebar({ user, onLogin, onLogout, onCompose }) {
+      return html`
+        <nav class="sidebar">
+          <div class="logo">🐦</div>
+
+          <div class="nav-item active"><span class="nav-icon">🏠</span> <span>Home</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span> <span>Explore</span></div>
+          <div class="nav-item"><span class="nav-icon">🔔</span> <span>Notifications</span></div>
+          <div class="nav-item"><span class="nav-icon">✉️</span> <span>Messages</span></div>
+          <div class="nav-item"><span class="nav-icon">📑</span> <span>Lists</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span> <span>Profile</span></div>
+          <div class="nav-item"><span class="nav-icon">⚙️</span> <span>Settings</span></div>
+
+          ${user ? html`
+            <button class="post-btn" onClick=${onCompose}><span>Post</span></button>
+            <div class="user-menu" onClick=${onLogout}>
+              <img src=${user.avatar} class="user-avatar" />
+              <div class="user-info">
+                <div class="user-name">${user.name}</div>
+                <div class="user-handle">${user.handle}</div>
+              </div>
+              <span>⋯</span>
+            </div>
+          ` : html`
+            <button class="post-btn" onClick=${onLogin}><span>Login</span></button>
+          `}
+        </nav>
+      `
+    }
+
+    function Composer({ user, onPost }) {
+      const [content, setContent] = useState('')
+
+      const handlePost = () => {
+        if (content.trim()) {
+          onPost(content.trim())
+          setContent('')
+        }
+      }
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && e.ctrlKey && content.trim()) {
+          handlePost()
+        }
+      }
+
+      if (!user) return null
+
+      return html`
+        <div class="composer">
+          <img src=${user.avatar} class="composer-avatar" />
+          <div class="composer-content">
+            <textarea
+              class="composer-textarea"
+              placeholder="What's happening?"
+              value=${content}
+              onInput=${e => setContent(e.target.value)}
+              onKeyDown=${handleKeyDown}
+              rows="1"
+            />
+            <div class="composer-actions">
+              <div class="composer-tools">
+                <div class="composer-tool">📷</div>
+                <div class="composer-tool">📊</div>
+                <div class="composer-tool">😀</div>
+                <div class="composer-tool">📅</div>
+                <div class="composer-tool">📍</div>
+              </div>
+              <button
+                class="tweet-btn"
+                disabled=${!content.trim()}
+                onClick=${handlePost}
+              >Post</button>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    function Tweet({ post, onLike, onRetweet }) {
+      return html`
+        <article class="tweet">
+          <img src=${post.authorPic} class="tweet-avatar" />
+          <div class="tweet-content">
+            <div class="tweet-header">
+              <span class="tweet-name">${post.authorName}</span>
+              <span class="tweet-handle">${post.authorHandle}</span>
+              <span class="tweet-dot">·</span>
+              <span class="tweet-time">${timeAgo(post.created)}</span>
+            </div>
+            <div class="tweet-body">${post.content}</div>
+            <div class="tweet-actions">
+              <div class="tweet-action"><span>💬</span> ${post.replies || ''}</div>
+              <div class="tweet-action ${post.retweeted ? 'retweeted' : ''}"><span>🔁</span> ${post.retweets || ''}</div>
+              <div class="tweet-action ${post.liked ? 'liked' : ''}" onClick=${() => onLike?.(post.id)}><span>❤️</span> ${post.likes || ''}</div>
+              <div class="tweet-action"><span>📤</span></div>
+            </div>
+          </div>
+        </article>
+      `
+    }
+
+    function RightSidebar() {
+      return html`
+        <aside class="right-sidebar">
+          <div class="search-box">
+            <input type="text" class="search-input" placeholder="Search" />
+          </div>
+
+          <div class="trends-box">
+            <div class="trends-header">Trends for you</div>
+            <div class="trend-item">
+              <div class="trend-category">Technology · Trending</div>
+              <div class="trend-name">#SolidProject</div>
+              <div class="trend-count">2,847 posts</div>
+            </div>
+            <div class="trend-item">
+              <div class="trend-category">Web · Trending</div>
+              <div class="trend-name">#DecentralizedWeb</div>
+              <div class="trend-count">1,523 posts</div>
+            </div>
+            <div class="trend-item">
+              <div class="trend-category">Technology · Trending</div>
+              <div class="trend-name">#LinkedData</div>
+              <div class="trend-count">987 posts</div>
+            </div>
+          </div>
+        </aside>
+      `
+    }
+
+    function LoginModal({ onLogin, onClose }) {
+      const [idp, setIdp] = useState('solidweb.org')
+
+      return html`
+        <div class="modal-overlay" onClick=${onClose}>
+          <div class="modal" onClick=${e => e.stopPropagation()}>
+            <h2>Sign in to Cimba</h2>
+            <p>Enter your Solid identity provider</p>
+            <input
+              type="text"
+              class="modal-input"
+              placeholder="e.g. solidweb.org"
+              value=${idp}
+              onInput=${e => setIdp(e.target.value)}
+            />
+            <div class="modal-actions">
+              <button class="modal-cancel" onClick=${onClose}>Cancel</button>
+              <button class="modal-submit" onClick=${() => onLogin(idp)}>Sign in</button>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    function App() {
+      const [user, setUser] = useState(null)
+      const [posts, setPosts] = useState([])
+      const [showLogin, setShowLogin] = useState(false)
+      const [loading, setLoading] = useState(true)
+      const [activeTab, setActiveTab] = useState('for-you')
+
+      useEffect(() => {
+        async function init() {
+          try {
+            const session = await initAuth()
+            if (session) {
+              const profile = await fetchProfile(session.webId)
+              setUser(profile)
+              if (profile.mbspace) {
+                const userPosts = await fetchPosts(profile.mbspace)
+                setPosts(userPosts)
+              }
+            }
+          } catch (e) {
+            console.error('Init failed:', e)
+          } finally {
+            setLoading(false)
+          }
+        }
+        init()
+      }, [])
+
+      const handleLogin = async (idp) => {
+        setShowLogin(false)
+        await solidLogin(idp)
+      }
+
+      const handlePost = async (content) => {
+        if (!user?.mbspace) return
+        try {
+          await createPost(user.mbspace, content, user)
+          const userPosts = await fetchPosts(user.mbspace)
+          setPosts(userPosts)
+        } catch (e) {
+          console.error('Failed to post:', e)
+        }
+      }
+
+      return html`
+        <div class="layout">
+          <${Sidebar}
+            user=${user}
+            onLogin=${() => setShowLogin(true)}
+            onLogout=${doLogout}
+            onCompose=${() => {}}
+          />
+
+          <main class="main">
+            <header class="header">
+              <h1>Home</h1>
+              <div class="header-tabs">
+                <div
+                  class="header-tab ${activeTab === 'for-you' ? 'active' : ''}"
+                  onClick=${() => setActiveTab('for-you')}
+                >For you</div>
+                <div
+                  class="header-tab ${activeTab === 'following' ? 'active' : ''}"
+                  onClick=${() => setActiveTab('following')}
+                >Following</div>
+              </div>
+            </header>
+
+            <${Composer} user=${user} onPost=${handlePost} />
+
+            ${loading ? html`
+              <div class="loading">Loading...</div>
+            ` : posts.length > 0 ? posts.map(post => html`
+              <${Tweet} key=${post.id} post=${post} />
+            `) : user ? html`
+              <div class="empty-state">
+                <h3>Welcome to Cimba!</h3>
+                <p>Post your first message above.</p>
+              </div>
+            ` : html`
+              <div class="empty-state">
+                <h3>Welcome to Cimba</h3>
+                <p>Decentralized microblogging on Solid.<br/>Sign in to get started.</p>
+              </div>
+            `}
+          </main>
+
+          <${RightSidebar} />
+        </div>
+
+        ${showLogin && html`<${LoginModal} onLogin=${handleLogin} onClose=${() => setShowLogin(false)} />`}
+      `
+    }
+
+    render(html`<${App} />`, document.getElementById('app'))
+  </script>
 </body>
 </html>
