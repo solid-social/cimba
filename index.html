@@ -29,11 +29,11 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #000000;
-      --bg-secondary: #16181c;
-      --border: #2f3336;
-      --text: #e7e9ea;
-      --text-secondary: #71767b;
+      --bg: #ffffff;
+      --bg-secondary: #f7f9f9;
+      --border: #eff3f4;
+      --text: #0f1419;
+      --text-secondary: #536471;
       --accent: #1d9bf0;
       --accent-hover: #1a8cd8;
       --danger: #f4212e;
@@ -139,7 +139,7 @@
     .header {
       position: sticky;
       top: 0;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(12px);
       padding: 0 16px;
       border-bottom: 1px solid var(--border);
@@ -421,14 +421,16 @@
     .modal-submit {
       flex: 1;
       padding: 12px;
-      background: var(--text);
+      background: var(--accent);
       border: none;
       border-radius: 9999px;
-      color: var(--bg);
+      color: white;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
     }
+
+    .modal-submit:hover { background: var(--accent-hover); }
 
     /* Empty state */
     .empty-state {
